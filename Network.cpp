@@ -10,7 +10,10 @@ using namespace std;
 
 char * strupr(char* string);
 
-int ListenLoop(int port)
+//listen 루프를 도는 함수
+//port : 해당 루프가 데이터를 받을 port번호
+//func : 패킷을 받았을때 처리할 함수 포인터
+int ListenLoop(int port, ComunicateFunction func)
 {
 	struct sockaddr_in server_addr, client_addr;
 	struct epoll_event ev;
@@ -19,20 +22,22 @@ int ListenLoop(int port)
 	int epfd;
 	int n;
 
-	if(port < 1024)
+	//port number check
+	if((port < 1024)||(port>0xFFFF))
 	{
 		cout<<"Server port should be less than 1024"<<endl;
 		return -1;
 	}
 
 	
-
-	if((server = socket(AF_INET, SOCK_STREAM, 0)) == -1)	//socket create
+	//server socket create
+	if((server = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
 		cout<<"Server : Can't open stream socket"<<endl;
 		return -1;
 	}
 
+	//address space clear
 	memset(&server_addr, 0x00, sizeof(server_addr));	//memory reset
 
 	//server_addr setting
@@ -41,18 +46,22 @@ int ListenLoop(int port)
 	server_addr.sin_port = htons(port);
 
 
+	//server socket binding
 	if(bind(server, (struct sockaddr *)&server_addr, sizeof(server_addr))< 0)
 	{
 		cout<<"Server can't bind local address"<<endl;
 		return -1;
 	}
 
+	//server listening
 	if(listen(server, WAITING_LENGTH)<0)
 	{
 		cout<<"Server can't listen"<<endl;
 		return -1;
 	}
 
+
+	//epoll create
 	if((epfd = epoll_create(MAXIMUM_CONNECTION)) < 0)
 	{
 		cout<<"Epoll Create Error"<<endl;
@@ -65,7 +74,8 @@ int ListenLoop(int port)
 
 	while(!exitFlag)
 	{
-		n = epoll_wait(epfd, evlist, MAXIMUM_SOCKET,100);
+		n = epoll_wait(epfd, evlist, MAXIMUM_SOCKET,-1);
+		cout<<"one round"<<endl;
 		for(int i = 0; i<n; i++)
 		{
 			socklen_t clilen = sizeof(clilen);
@@ -87,7 +97,7 @@ int ListenLoop(int port)
 				client = evlist[i].data.fd;
 				while(maxLen != 0)
 				{
-					numByte = recv(client, buffer_ptr, maxLen, 0);
+					numByte = read(client, buffer_ptr, maxLen);
 					buffer_ptr += numByte;
 					maxLen -= numByte;
 					len += numByte;
@@ -132,6 +142,6 @@ char * strupr(char * string)
 
 int main(void)
 {
-	ListenLoop(5000);
+	ListenLoop(5000, NULL);
 	return 0;
 }

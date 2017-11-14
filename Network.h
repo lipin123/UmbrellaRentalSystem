@@ -9,12 +9,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
-#include <netinet/in.h>
 #include <pthread.h>
 
 bool exitFlag = false;
 
-int ListenLoop(int port);
+typedef int (*ComunicateFunction)(std::string);
+
+int ListenLoop(int port, ComunicateFunction func);
 int ConEstablish(void *);
 
 #endif
