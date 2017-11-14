@@ -1,6 +1,7 @@
 /////////////////////////////////////////////////////////
 //
 // 서버와의 네트워크 JSON 데이터 포멧을 규정하는 헤더입니다.
+// 데이터를 보내실때 4kB를 꽉 채워서 보내주세요(앞에 json데이터 넣고 뒤에는 더미 데이터로 패딩)
 //
 /////////////////////////////////////////////////////////
 
@@ -135,7 +136,7 @@ class SelectUmbrella
 /*
  * int command
  * int userID
- * string hashCode
+ * string hashCode(32바이트)
  */
 class UmbrellaHash
 {
@@ -156,7 +157,7 @@ class RentalSpotIdentification
 /*
  * int command
  * int rentalSpotID
- * string hashCode
+ * string hashCode(32바이트)
  */
 class SendHash
 {
