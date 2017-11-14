@@ -1,11 +1,13 @@
 /////////////////////////////////////////////////////////
 //
-// 서버와의 네트워크 데이터 포멧을 규정하는 헤더입니다.
+// 서버와의 네트워크 JSON 데이터 포멧을 규정하는 헤더입니다.
 //
 /////////////////////////////////////////////////////////
 
 #ifndef __SERVER_NETWORK_FORMAT__
 #define __SERVER_NETWORK_FORMAT__
+
+#include "json/json.h"
 
 //다음은 각 네트워크에서 커맨드 바이트들
 #define ACK					0xFF	//데이터를 받았다는 의미로 보내는 ACK
@@ -24,7 +26,7 @@
 #define S2R_VerifyCom		0x12	//해시코드에 해당하는 명령 전송
 #define R2S_RentConfirm		0x13	//우산 대여 후 이상유무 및 현 상태 전송
 
-struct RentalSpotBrief
+struct RentalSpotLocation
 {
 	int eastLongitude;
 	int northLatitude;
@@ -32,12 +34,32 @@ struct RentalSpotBrief
 	int numOfUmb;
 };
 
+
+//int 정수형
+//double 소수 형태
+//string 문자열 형태
+
+
+/*
+ * int command
+ * int userID
+ *
+ */
 class UserIdentification
 {
 	public:
 		int userID;
 };
 
+/*
+ * int command
+ * int userID
+ * int eastLongitude
+ * int northLatitude
+ * double width
+ * double height
+ *
+ */
 class RentalSpotRequest
 {
 	public:
@@ -47,18 +69,48 @@ class RentalSpotRequest
 		double height;
 };
 
+/*
+ * int command
+ * int userID
+ * int numOfSpot
+ * RentalSpotLocation
+ * [
+ * 		int eastLongitude
+ *      int northLatitude
+ *      int rentalSpotID
+ *      int numOfUmb
+ *      ,
+ *      ...
+ * ]
+ * 
+ */
 class RentalSpotPosition
 {
 	public:
 		int numOfSpot;
-		RentalSpotBrief * data;
+		RentalSpotLocation * data;
 };
 
+/*
+ * int command
+ * int userID
+ * int rentalSpotID
+ */
 class SelectRentalSpot
 {
 	public:
 		int rentalSpotID;
 };
+
+/*
+ * int command
+ * int userID
+ * int rentalSpotID
+ * int x
+ * int y
+ * string umbStorage
+ */
+
 
 class RentalSpotInfo
 {
@@ -68,37 +120,67 @@ class RentalSpotInfo
 		char * umbStorage;
 };
 
+/*
+ * int command
+ * int userID
+ * int rentalSpotID
+ * int umbNum
+ */
 class SelectUmbrella
 {
 	public:
 		int umbNum;
 };
 
+/*
+ * int command
+ * int userID
+ * string hashCode
+ */
 class UmbrellaHash
 {
 	public:
 		char hashCode[32];
 };
 
+/*
+ * int command
+ * int rentalSpotID
+ */
 class RentalSpotIdentification
 {
 	public:
 		int rentalSpotID;
 };
 
+/*
+ * int command
+ * int rentalSpotID
+ * string hashCode
+ */
 class SendHash
 {
 	public:
 		char hashCode[32];
 };
 
+/*
+ * int command
+ * int rentalSpotID
+ * int umbID;
+ */
 class VerifyCom
 {
 	public:
-		int status;
 		int umbID;
 };
 
+/*
+ * int command
+ * int rentalSpotID
+ * int status
+ * string umbStorage
+ */
 class RentConfirm
 {
 	public:
