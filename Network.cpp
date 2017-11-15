@@ -2,6 +2,13 @@
 #include <cstring>
 #include <cstdio>
 
+#ifndef __JSON__
+#define __JSON__
+#include "json/json.h"
+#endif
+
+
+
 #define WAITING_LENGTH (100)
 #define MAXIMUM_SOCKET (8)
 #define MAXIMUM_CONNECTION (1000)
@@ -13,7 +20,7 @@ char * strupr(char* string);
 //listen 루프를 도는 함수
 //port : 해당 루프가 데이터를 받을 port번호
 //func : 패킷을 받았을때 처리할 함수 포인터(클라이언트 소켓, string 데이터)
-int ListenLoop(int port, ComunicateFunction func)
+int Network::ListenLoop(int port)
 {
 	struct sockaddr_in server_addr, client_addr;	//주소값 변수들
 	int server, client;								//소켓 변수
@@ -24,11 +31,7 @@ int ListenLoop(int port, ComunicateFunction func)
 	int numOfEvent;									//받은 event의 숫자
 
 	//데이터를 받기위한 변수들
-	char buffer[BUFFER_LEN];		//데이터를 받을 버퍼
-	char * buffer_ptr = buffer;		//버퍼 포인터
-	int len = 0;					//현재까지 받은 데이터
-	int remainLen = BUFFER_LEN;		//남은 받아야 하는 데이터
-	int numByte = 0;				//방금 read로 받은 데이터
+	char buffer[BUFFER_MAX_LEN];		//데이터를 받을 버퍼
 	string dataStr;
 
 
@@ -111,20 +114,17 @@ int ListenLoop(int port, ComunicateFunction func)
 			{
 				//클라이언트 핸들
 				client = evlist[i].data.fd;
-
-				//데이터를 받는 부분, remainLen까지 다 받기 전까지 계속해서 데이터를 받는다.
-				memset(buffer,0x00,sizeof(buffer));	//buffer reset
-
-				while(remainLen != 0)
-				{
-					numByte = read(client, buffer_ptr, remainLen);
-					buffer_ptr += numByte;
-					remainLen -= numByte;
-					len += numByte;
-				}
-
 				dataStr = buffer;
 
+				switch(dataStreamRead(client, buffer))
+				{
+					case -1:
+						cout<<"Data Length error!"<<endl;
+						exit(1);
+					case 1:
+						cout<<"EOF detected!"<<endl;
+						break;
+				}
 
 				//디버깅용
 				if(DEBUG)
@@ -133,7 +133,7 @@ int ListenLoop(int port, ComunicateFunction func)
 
 					strupr(buffer);
 
-					if((send(client, buffer, BUFFER_LEN, 0))<0)
+					if((send(client, buffer, BUFFER_MAX_LEN, 0))<0)
 					{
 						perror("Error: Send failed\n");
 						return -1;
@@ -144,23 +144,71 @@ int ListenLoop(int port, ComunicateFunction func)
 				}
 				///////////////////////
 				else
-					if(func(client, dataStr))	//데이터를 클라이언트와 통신하는 함수로 넘겨줌
+					if(ComunicateFunc(client, dataStr))	//데이터를 클라이언트와 통신하는 함수로 넘겨줌
 					{
-						//1이 반환되면 연결 종료
+						//1이 반환되면 통신이 이제 종료되므로 epoll에서 제거
 						epoll_ctl(epfd,EPOLL_CTL_DEL,client,&evlist[i]);
-						close(client);
 					}
 			}
 
 		}
 	}
-	
+
 	//종료시 서버 제거
 	close(server);
 	return 0;
 }
 
+int Network::dataStreamRead(int socket, char * buffer)
+{
+	unsigned int len = 0;			//현재까지 받은 데이터
+	unsigned int remainLen;			//남은 받아야 하는 데이터
+	unsigned int numByte = 0;		//방금 read로 받은 데이터
+	char * buffer_ptr = buffer;
 
+	//데이터를 받는 부분, remainLen까지 다 받기 전까지 계속해서 데이터를 받는다.
+	memset(buffer,0x00,sizeof(buffer));	//buffer reset
+
+	remainLen = sizeof(int);	//정수값을 받기 위한 함수
+	while(remainLen != 0)
+	{
+		numByte = read(socket, buffer_ptr, remainLen);
+		if(numByte == 0)
+			return 1;
+		buffer_ptr += numByte;
+		remainLen -= numByte;
+		len += numByte;
+	}
+
+	memcpy(&remainLen, buffer, 4);	//string 형태로 온 int 데이터를 강제로 집어넣음
+	if((remainLen > BUFFER_MAX_LEN)||(remainLen<0))	//데이터 사이즈가 버퍼 크기를 초과하는지 체크
+		return -1;
+
+	buffer_ptr = buffer;
+	len = 0;
+	numByte = 0;
+
+	while(remainLen != 0)
+	{
+		numByte = read(socket, buffer_ptr, remainLen);
+		buffer_ptr += numByte;
+		remainLen -= numByte;
+		len += numByte;
+	}
+
+	return 0;
+}
+
+int Network::stringToJson(string data)
+{
+	Json::Reader reader;
+
+	dataJson.clear();
+	if(!reader.parse(data,dataJson))
+		return 1;
+
+	return 0;
+}
 
 char * strupr(char * string)
 {
