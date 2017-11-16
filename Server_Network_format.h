@@ -11,27 +11,27 @@
 #include "json/json.h"
 
 //다음은 각 네트워크에서 커맨드 바이트들
-#define ACK					0xFF	//데이터를 받았다는 의미로 보내는 ACK
+#define ACK					(0xFF)	//데이터를 받았다는 의미로 보내는 ACK
 
-#define U2S_UserIden		0x00	//최초 연결시 유저 identification
-#define U2S_ReqRentalPos	0x01	//대여소 위치 요청
-#define S2U_RentalPos		0x02	//대여소 위치 응답
-#define U2S_SelRentalSpot	0x03	//대여소 선택
-#define S2U_RentalSpotInfo	0x04	//대여소 정보 응답
-#define U2S_SelUmb			0x05	//우산 선택
-#define S2U_UmbHash			0x06	//해당 우산 해시코드 응답
-#define S2U_RentalComplete	0x07	//최종적으로 우산 대여가 완료됨
+#define U2S_UserIden		(0x00)	//최초 연결시 유저 identification
+#define U2S_ReqRentalPos	(0x01)	//대여소 위치 요청
+#define S2U_RentalPos		(0x02)	//대여소 위치 응답
+#define U2S_SelSpot	(0x03)	//대여소 선택
+#define S2U_SpotInfo	(0x04)	//대여소 정보 응답
+#define U2S_SelUmb			(0x05)	//우산 선택
+#define S2U_UmbHash			(0x06)	//해당 우산 해시코드 응답
+#define S2U_RentalComplete	(0x07)	//최종적으로 우산 대여가 완료됨
 
-#define R2S_RentalIden		0x10	//최초 연결시 대여소 identification
-#define R2S_SendHash		0x11	//QR코드로 읽은 해시코드 전송
-#define S2R_VerifyCom		0x12	//해시코드에 해당하는 명령 전송
-#define R2S_RentConfirm		0x13	//우산 대여 후 이상유무 및 현 상태 전송
+#define R2S_RentalIden		(0x10)	//최초 연결시 대여소 identification
+#define R2S_SendHash		(0x11)	//QR코드로 읽은 해시코드 전송
+#define S2R_VerifyCom		(0x12)	//해시코드에 해당하는 명령 전송
+#define R2S_RentConfirm		(0x13)	//우산 대여 후 이상유무 및 현 상태 전송
 
-struct RentalSpotLocation
+struct SpotLocation
 {
 	int eastLongitude;
 	int northLatitude;
-	int rentalSpotID;
+	int spotID;
 	int numOfUmb;
 };
 
@@ -43,7 +43,7 @@ struct RentalSpotLocation
 
 /*
  * int command
- * int userID
+ * int ID
  *
  */
 class UserIdentification
@@ -55,13 +55,13 @@ class UserIdentification
 /*
  * int command
  * int userID
- * int eastLongitude
- * int northLatitude
+ * int E
+ * int N
  * double width
  * double height
  *
  */
-class RentalSpotRequest
+class SpotRequest
 {
 	public:
 		int eastLongitude;
@@ -74,49 +74,49 @@ class RentalSpotRequest
  * int command
  * int userID
  * int numOfSpot
- * RentalSpotLocation
+ * SpotLocation
  * [
- * 		int eastLongitude
- *      int northLatitude
- *      int rentalSpotID
+ * 		double E
+ *      double N
+ *      int spotID
  *      int numOfUmb
  *      ,
  *      ...
  * ]
  * 
  */
-class RentalSpotPosition
+class SpotPosition
 {
 	public:
 		int numOfSpot;
-		RentalSpotLocation * data;
+		SpotLocation * data;
 };
 
 /*
  * int command
  * int userID
- * int rentalSpotID
+ * int spotID
  */
-class SelectRentalSpot
+class SelectSpot
 {
 	public:
-		int rentalSpotID;
+		int spotID;
 };
 
 /*
  * int command
  * int userID
- * int rentalSpotID
+ * int spotID
  * int x
  * int y
  * string umbStorage
  */
 
 
-class RentalSpotInfo
+class SpotInfo
 {
 	public:
-		int rentalSpotID;
+		int spotID;
 		int x, y;
 		char * umbStorage;
 };
@@ -124,7 +124,7 @@ class RentalSpotInfo
 /*
  * int command
  * int userID
- * int rentalSpotID
+ * int spotID
  * int umbNum
  */
 class SelectUmbrella
@@ -136,6 +136,7 @@ class SelectUmbrella
 /*
  * int command
  * int userID
+ * int spotID
  * string hashCode(32바이트)
  */
 class UmbrellaHash
@@ -146,17 +147,17 @@ class UmbrellaHash
 
 /*
  * int command
- * int rentalSpotID
+ * int spotID
  */
-class RentalSpotIdentification
+class SpotIdentification
 {
 	public:
-		int rentalSpotID;
+		int spotID;
 };
 
 /*
  * int command
- * int rentalSpotID
+ * int spotID
  * string hashCode(32바이트)
  */
 class SendHash
@@ -167,7 +168,7 @@ class SendHash
 
 /*
  * int command
- * int rentalSpotID
+ * int spotID
  * int umbID;
  */
 class VerifyCom
@@ -178,7 +179,7 @@ class VerifyCom
 
 /*
  * int command
- * int rentalSpotID
+ * int spotID
  * int status
  * string umbStorage
  */

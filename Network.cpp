@@ -20,7 +20,7 @@ char * strupr(char* string);
 //listen 루프를 도는 함수
 //port : 해당 루프가 데이터를 받을 port번호
 //func : 패킷을 받았을때 처리할 함수 포인터(클라이언트 소켓, string 데이터)
-int Network::ListenLoop(int port)
+int Network::ListenLoop(const int port)
 {
 	struct sockaddr_in server_addr, client_addr;	//주소값 변수들
 	int server, client;								//소켓 변수
@@ -105,18 +105,9 @@ int Network::ListenLoop(int port)
 			if(evlist[i].data.fd == server)
 			{
 				client = accept(server, (struct sockaddr *)&client_addr, &clilen);
-				ev.events = EPOLLIN|EPOLLERR;
-				ev.data.fd = client;
-				epoll_ctl(epfd,EPOLL_CTL_ADD, client, &ev);
-			}
-			//client socket으로 넘어온 데이터들
-			else
-			{
-				//클라이언트 핸들
-				client = evlist[i].data.fd;
-				dataStr = buffer;
 
-				switch(dataStreamRead(client, buffer))
+				//Identification을 위해 데이터 읽기
+				switch(dataStreamRead(client))
 				{
 					case -1:
 						cout<<"Data Length error!"<<endl;
@@ -126,7 +117,34 @@ int Network::ListenLoop(int port)
 						break;
 				}
 
-				//디버깅용
+				//최초연결시 identification
+				if(Identification(client))
+					close(client);	//아니라면 바로 연결 종료
+				else
+				{
+					//확인후 맞다면 넣기
+					ev.events = EPOLLIN|EPOLLERR;
+					ev.data.fd = client;
+					epoll_ctl(epfd,EPOLL_CTL_ADD, client, &ev);
+				}
+			}
+			//client socket으로 넘어온 데이터들
+			else
+			{
+				//클라이언트 핸들
+				client = evlist[i].data.fd;
+
+				switch(dataStreamRead(client))
+				{
+					case -1:
+						cout<<"Data Length error!"<<endl;
+						exit(1);
+					case 1:
+						cout<<"EOF detected!"<<endl;
+						break;
+				}
+
+				//디버깅용///////////////////////////////////////
 				if(DEBUG)
 				{
 					cout<<buffer<<endl;
@@ -142,9 +160,9 @@ int Network::ListenLoop(int port)
 					cout<<epoll_ctl(epfd,EPOLL_CTL_DEL,client,&evlist[i])<<endl;;
 					close(client);
 				}
-				///////////////////////
+				/////////////////////////////////////////////////////
 				else
-					if(ComunicateFunc(client, dataStr))	//데이터를 클라이언트와 통신하는 함수로 넘겨줌
+					if(ComunicateFunc(client))	//데이터를 클라이언트와 통신하는 함수로 넘겨줌
 					{
 						//1이 반환되면 통신이 이제 종료되므로 epoll에서 제거
 						epoll_ctl(epfd,EPOLL_CTL_DEL,client,&evlist[i]);
@@ -159,11 +177,12 @@ int Network::ListenLoop(int port)
 	return 0;
 }
 
-int Network::dataStreamRead(int socket, char * buffer)
+int Network::dataStreamRead(const int socket)
 {
 	unsigned int len = 0;			//현재까지 받은 데이터
 	unsigned int remainLen;			//남은 받아야 하는 데이터
 	unsigned int numByte = 0;		//방금 read로 받은 데이터
+	char buffer[BUFFER_MAX_LEN];
 	char * buffer_ptr = buffer;
 
 	//데이터를 받는 부분, remainLen까지 다 받기 전까지 계속해서 데이터를 받는다.
@@ -196,10 +215,26 @@ int Network::dataStreamRead(int socket, char * buffer)
 		len += numByte;
 	}
 
+	string data = buffer;
+
+	if(stringToJson(data))
+		return -1;
+
 	return 0;
 }
 
-int Network::stringToJson(string data)
+int Network::dataStreamWrite(const int socket, Json::Value &data)
+{
+	Json::StyledWriter writer;
+	string sendDataStr = writer.write(data);
+	int strLen = sendDataStr.length();
+
+	write(socket, &strLen, sizeof(strLen));
+	write(socket, sendDataStr.c_str(), strLen);
+	return 0;
+}
+
+int Network::stringToJson(const string &data)
 {
 	Json::Reader reader;
 
