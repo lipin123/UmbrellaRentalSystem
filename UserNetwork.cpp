@@ -1,5 +1,4 @@
 #include "UserNetwork.h"
-#include "Server_Network_format.h"
 #include "sha256.h"
 #include <ctime>
 #include <cstdlib>
@@ -7,19 +6,17 @@ using namespace std;
 
 
 
-int UserNetwork::ComunicateFunc(int socket)
+int UserNetwork::ComunicateFunc(const int socket)
 {
 	
 	switch(dataJson["command"].asInt())
 	{
 		case U2S_ReqRentalPos:	//대여소 위치 요청
-			
+			return SpotRequest(socket);
 		case U2S_SelSpot:	//대여소 선택
-
-			break;
+			return SelectSpot(socket);
 		case U2S_SelUmb:	//우산 선택
-
-			break;
+			return SelectUmbrella(socket);
 	}
 
 }
