@@ -7,7 +7,7 @@
 #include "json/json.h"
 #endif
 
-
+#define DEBUG 0
 
 #define WAITING_LENGTH (100)
 #define MAXIMUM_SOCKET (8)
@@ -110,10 +110,12 @@ int Network::ListenLoop(const int port)
 				switch(dataStreamRead(client))
 				{
 					case -1:
-						cout<<"Data Length error!"<<endl;
+						if(DEBUG)
+							cout<<"Data Length error!"<<endl;
 						exit(1);
 					case 1:
-						cout<<"EOF detected!"<<endl;
+						if(DEBUG)
+							cout<<"EOF detected!"<<endl;
 						break;
 				}
 
@@ -137,10 +139,12 @@ int Network::ListenLoop(const int port)
 				switch(dataStreamRead(client))
 				{
 					case -1:
-						cout<<"Data Length error!"<<endl;
+						if(DEBUG)
+							cout<<"Data Length error!"<<endl;
 						exit(1);
 					case 1:
-						cout<<"EOF detected!"<<endl;
+						if(DEBUG)
+							cout<<"EOF detected!"<<endl;
 						break;
 				}
 
@@ -203,6 +207,8 @@ int Network::dataStreamRead(const int socket)
 	if((remainLen > BUFFER_MAX_LEN)||(remainLen<0))	//데이터 사이즈가 버퍼 크기를 초과하는지 체크
 		return -1;
 
+	cout<<remainLen<<endl;
+
 	buffer_ptr = buffer;
 	len = 0;
 	numByte = 0;
@@ -214,6 +220,11 @@ int Network::dataStreamRead(const int socket)
 		remainLen -= numByte;
 		len += numByte;
 	}
+	
+	numByte = read(socket, buffer_ptr, 3);
+
+
+	cout<<buffer<<endl;
 
 	string data = buffer;
 

@@ -4,6 +4,7 @@
 #include <cstdlib>
 using namespace std;
 
+#define DEBUG_USER 1
 
 
 int UserNetwork::ComunicateFunc(const int socket)
@@ -17,13 +18,16 @@ int UserNetwork::ComunicateFunc(const int socket)
 			return SelectSpot(socket);
 		case U2S_SelUmb:	//우산 선택
 			return SelectUmbrella(socket);
+		default:
+			if(DEBUG_USER)
+				cout<<"just out"<<endl;
 	}
 
 }
 
 int UserNetwork::Identification(const int socket)
 {
-	int userID = dataJson["ID"].asInt();
+	int userID = dataJson["userID"].asInt();
 
 	if(dataJson["command"].asInt() == U2S_UserIden)
 	{
@@ -33,11 +37,13 @@ int UserNetwork::Identification(const int socket)
 		//	만약 아니라면 1 반환
 		//////////////////////////////////////////
 
-		sendData["userID"] = userID;
+		sendData["ID"] = userID;
 		sendData["command"] = ACK;
 
 		dataStreamWrite(socket, sendData);
 
+		if(DEBUG)
+			cout<<"Identified"<<userID<<endl;
 		return 0;
 	}else
 		return 1;
@@ -53,7 +59,7 @@ int UserNetwork::SpotRequest(const int socket)
 	sendData["userID"] = dataJson["userID"].asInt();
 
 	////////////////////////////////////////////////////
-	// 우산 위치 데이터들 받기
+	// 우산 대여소 위치 데이터들 받기
 	////////////////////////////////////////////////////
 
 	sendData["numOfSpot"] = locationNum;

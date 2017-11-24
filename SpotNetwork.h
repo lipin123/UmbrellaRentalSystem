@@ -11,4 +11,8 @@ class SpotNetwork : public Network
 		int ComunicateFunc(const int socket);
 
 		int Identification(const int socket);
+
+		int ReturnUmbrellaCode(const int socket);
+
+		int ReturnConfirm(const int socket);
 };

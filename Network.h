@@ -16,7 +16,6 @@
 #include "json/json.h"
 #endif
 
-#define DEBUG true	//true일때는 에코서버가 됨
 #define BUFFER_MAX_LEN 4096	//4kB
 
 //서버 종료 플래그
