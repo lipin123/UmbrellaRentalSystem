@@ -7,9 +7,11 @@ int SpotNetwork::ComunicateFunc(const int socket)
 {
 	switch(dataJson["command"].asInt())
 	{
-		case R2S_SendHash:	//
-
+		case R2S_SendHash:
+			return ReturnUmbrellaCode(socket);
 		case R2S_RentConfirm:
+			return ReturnConfirm(socket);
+		default:
 	}
 }
 
@@ -51,4 +53,21 @@ int SpotNetwork::ReturnUmbrellaCode(const int socket)
 	sendData["spotID"] = spotID;
 	sendData["command"] = S2R_VerifyUmbrellaCode;
 
+	return 0;
+}
+
+int SpotNetwork::ReturnConfirm(const int socket)
+{
+	int spotID = dataJson["spotID"].asInt();
+	int returnPlace = dataJson["spotID"].asInt();
+	int status = dataJson["status"].asInt();
+	string umbStorage = dataJson["umbStorage"].asString();
+
+	/////////////////////////////////////////////////////////////////
+	// DB에 해당 ID의 우산에 '보관된 Spot ID'와 'Spot에 보관된 위치'
+	// 를 수정
+	// 해당 대여지점(Spot)이 보유한 우산 및 현재 보관 현황을 최신화
+	// //////////////////////////////////////////////////////////////
+	
+	return 1;
 }

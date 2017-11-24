@@ -186,6 +186,7 @@ struct SpotLocation
  * 반납 최종 확인 및 최신화
  * int command(R2S_ReturnConfirm)
  * int spotID
+ * int umbID
  * int status
  * int returnPlace
  * string umbStorage
