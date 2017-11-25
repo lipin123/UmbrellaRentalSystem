@@ -5,6 +5,7 @@
 #include <string>
 #include "Server_Network_format.h"
 #include "Network.h"
+#include "MyDB.h"
 
 class UserNetwork : public Network
 {
@@ -21,6 +22,11 @@ class UserNetwork : public Network
 	int SelectSpot(const int socket);
 
 	int SelectUmbrella(const int socket);
+
+	int CheckUserID(int userID);//part 1
+	coordinates GetSportCdnt(int SportID);//part 2
+	vector<rentalSpot> GetRentalspotInfo(int RentalspotID);//part 3
+	bool AdHashCode(int userID,int spotID,int umbNum,string hashCode); //part 4
 };
 
 #endif
