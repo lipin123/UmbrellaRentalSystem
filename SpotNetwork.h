@@ -4,20 +4,32 @@
 #include "Server_Network_format.h"
 #include "Network.h"
 #include <iostream>
-#include "MyDB.h";
+#include "MyDB.h"
+
 class SpotNetwork : public Network
 {
-private:
+	private:
+		MyDB dbExa;
 
-	int ComunicateFunc(const int socket);
+	public:
+		SpotNetwork()
+		{
+			dbExa.InitDB("localhos", "root", "1234", "umbrella", 3306);
+		}
 
-	int Identification(const int socket);
+	private:
 
-	int ReturnUmbrellaCode(const int socket);
+		int ComunicateFunc(const int socket);
 
-	int ReturnConfirm(const int socket);
+		int Identification(const int socket);
 
-	int CheckRentalSpotID(int spotID);//part1
-	int UmbrellaFindUsers(int umbrellaid);//part2
-	bool UpdateUmbrellaLocation(int umbrellaID, int newSpotID, int newSlotID);//part3
+		int ReturnUmbrellaCode(const int socket);
+
+		int ReturnConfirm(const int socket);
+
+		int CheckRentalSpotID(int spotID);//part1
+		int UmbrellaFindUsers(int umbrellaid);//part2
+		bool UpdateUmbrellaLocation(int umbrellaID, int newSpotID, int newSlotID);//part3
 };
+
+#endif

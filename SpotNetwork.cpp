@@ -1,12 +1,8 @@
-﻿#include "SpotNetwork.h";
-
-#include <string>;
-
+﻿#include "SpotNetwork.h"
+#include <string>
 using namespace std;
 
-//DB function begin
-MyDB dbExa;
-dbExa.InitDB("localhost", "root", "1234", "umbrellarental", 3306);
+
 
 int SpotNetwork::CheckRentalSpotID(int spotID)//part1
 {
@@ -47,6 +43,7 @@ int SpotNetwork::ComunicateFunc(const int socket)
 	case R2S_RentConfirm:
 		return ReturnConfirm(socket);
 	default:
+		break;
 	}
 }
 
@@ -61,7 +58,8 @@ int SpotNetwork::Identification(const int socket)
 		/////////////////////////////////////////////////////
 		//	DB part 1
 		//	return 1 if it's not right RentalSpot ID
-		CheckRentalSpotID(spotID);//part 1
+		if(CheckRentalSpotID(spotID))
+			return 1;
 		////////////////////////////////////////////////////
 
 		sendData["ID"] = spotID;
@@ -79,17 +77,24 @@ int SpotNetwork::ReturnUmbrellaCode(const int socket)
 {
 	int spotID = dataJson["spotID"].asInt();
 	int umbID = dataJson["umbID"].asInt();
+	int userID = 1234;
+	Json::Value sendData;
 
 	////////////////////////////////////////////////////////////////
 	//  DB 파트 2
 	//  umbID로 우산 번호 확인 후 대여중인지 확인
 	//  만약 해당 우산번호가 없거나 대여중인 우산이 아니라면 -1 반환
 	//  그게 아니라면 대여하고 있던 userID 반환
-	UmbrellaFindUsers(umbID);//part 2
+	if((userID = UmbrellaFindUsers(umbID)) == -1)
+		return 1;
 	//////////////////////////////////////////////////////////////
 
 	sendData["spotID"] = spotID;
 	sendData["command"] = S2R_VerifyUmbrellaCode;
+	sendData["userID"] = userID;
+	sendData["umbID"] = umbID;
+
+	dataStreamWrite(socket, sendData);
 
 	return 0;
 }
@@ -97,8 +102,9 @@ int SpotNetwork::ReturnUmbrellaCode(const int socket)
 int SpotNetwork::ReturnConfirm(const int socket)
 {
 	int spotID = dataJson["spotID"].asInt();
-	int returnPlace = dataJson["spotID"].asInt();
+	int returnPlace = dataJson["returnPlace"].asInt();
 	int status = dataJson["status"].asInt();
+	int umbID = dataJson["umbID"].asInt();
 	string umbStorage = dataJson["umbStorage"].asString();
 
 	/////////////////////////////////////////////////////////////////
@@ -106,8 +112,11 @@ int SpotNetwork::ReturnConfirm(const int socket)
 	// DB에 해당 ID의 우산에 '보관된 Spot ID'와 'Spot에 보관된 위치'
 	// 를 수정
 	// 해당 대여지점(Spot)이 보유한 우산 및 현재 보관 현황을 최신화
-	UpdateUmbrellaLocation(int umbrellaID, int newSpotID, int newSlotID)//Please enter the parameters
+	UpdateUmbrellaLocation(umbID, spotID, returnPlace);//Please enter the parameters
 	////////////////////////////////////////////////////////////////
 
-		return 1;
+	if(status)
+		cout<<spotID<<" have a problem for return"<<endl;
+
+	return 1;
 }

@@ -1,7 +1,7 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : test2
+ Source Server         : test1
  Source Server Type    : MySQL
  Source Server Version : 50720
  Source Host           : localhost:3306
@@ -11,11 +11,22 @@
  Target Server Version : 50720
  File Encoding         : 65001
 
- Date: 19/11/2017 01:24:42
+ Date: 26/11/2017 17:37:41
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for hashcode
+-- ----------------------------
+DROP TABLE IF EXISTS `hashcode`;
+CREATE TABLE `hashcode`  (
+  `userID` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0',
+  `umbID` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0',
+  `hashCode` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0',
+  PRIMARY KEY (`hashCode`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for nearest_point
@@ -25,7 +36,7 @@ CREATE TABLE `nearest_point`  (
   `rs_id` int(20) NOT NULL DEFAULT 0 COMMENT '대여지점id',
   `umbrella_id` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '소유중인 우산 id들',
   `structure` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '대여기 배열(x X y)',
-  `vacancy` varchar(6) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '111111' COMMENT '1 is 포착상태, 0 is  빈 자리',
+  `vacancy` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '111111' COMMENT '1 is 포착상태, 0 is  빈 자리',
   `latitude` double(7, 4) NOT NULL DEFAULT 0.0000 COMMENT '좌표,경도',
   `longitude` double(7, 4) NOT NULL DEFAULT 0.0000 COMMENT '좌표,위도',
   PRIMARY KEY (`rs_id`) USING BTREE
@@ -39,7 +50,7 @@ CREATE TABLE `rental_spot`  (
   `rs_id` int(20) NOT NULL DEFAULT 0 COMMENT '대여지점id',
   `umbrella_id` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '소유중인 우산 id들',
   `structure` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '대여기 배열(x X y)',
-  `vacancy` varchar(6) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '111111' COMMENT '1 is 포착상태, 0 is  빈 자리',
+  `vacancy` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '111111' COMMENT '1 is 포착상태, 0 is  빈 자리',
   `latitude` double(7, 4) NOT NULL DEFAULT 0.0000 COMMENT '좌표,경도',
   `longitude` double(7, 4) NOT NULL DEFAULT 0.0000 COMMENT '좌표,위도',
   PRIMARY KEY (`rs_id`) USING BTREE
@@ -89,7 +100,7 @@ BEGIN
   DECLARE rsid int(20);  -- rs_id
 	DECLARE unbid VARCHAR(255); -- umbrella_id
   DECLARE str VARCHAR(255); -- structure
-	DECLARE vac VARCHAR(6); -- vacancy
+	DECLARE vac VARCHAR(255); -- vacancy
 	DECLARE lat DOUBLE(7,4); -- 纬度
 	DECLARE lng DOUBLE(7,4); -- 经度
 	
@@ -104,13 +115,13 @@ BEGIN
   OPEN cur;
 	truncate table nearest_point; 
   -- 开始循环
-  read_loop: LOOP
+  youbiao: LOOP
     -- 提取游标里的数据
     FETCH cur INTO rsid,unbid,str,vac,lat,lng;
 		
     -- 声明结束的时候
     IF done THEN
-      LEAVE read_loop;
+      LEAVE youbiao;
     END IF;
     -- 事件
 		
@@ -126,45 +137,6 @@ BEGIN
   CLOSE cur;
 
 SELECT * FROM nearest_point;
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Procedure structure for test1
--- ----------------------------
-DROP PROCEDURE IF EXISTS `test1`;
-delimiter ;;
-CREATE DEFINER=`root`@`%` PROCEDURE `test1`(IN lat_user DOUBLE(7,4),IN lng_user 
-DOUBLE(7,4),IN dist int(5))
-BEGIN
-
--- 需要定义接收游标数据的变量 
-  -- 遍历数据结束标志
-set@lng=116.45;
-set@lat=39.941;
-
-		   -- SET @step1 = SIN(lat_user*PI()/180)*SIN(@lat*PI()/180)+ COS(lat_user*PI()/180)*COS(@lat*PI()/180)*COS((lng_user-@lng)*PI()/180);
-		   -- SET @tem=6371.004*ACOS(@step1)*PI()/180;
-		
-		      SET @tem=(2 * 6367000* ASIN(SQRT(POW(SIN((lat_user-@lat)*PI()/180*0.5),2)+COS(lat_user*PI()/180)* COS(@lat * PI()/180)*POW(SIN((lng_user-@lng)*PI()/180*0.5),2))));
-
-  -- set@step1=POW(SIN((lat_user-@lat)*PI()/180/2),2)+COS(lat_user*PI()/180)* COS(@lat * PI()/180)*POW(SIN((lng_user-@lng)*PI()/180/2),2);
-  -- set@step2=2*  ATAN(SQRT(@step1),SQRT(1-@step1));
-  -- set@tem= 6367000*@step2;
-
-  -- set @tem1=COS(((@lat+lat_user)/2)*(PI()/180));
-  -- set @lx=(lng_user-@lng)*(PI()/180)* 6367000.0*@tem1;
-  -- set @ly=6367000.0* (lat_user-@lat)*(PI()/180);
-  -- set @tem=SQRT(@lx*@lx+@ly*@ly);
-
-
-		  -- set @step1 = SIN(lat_user*PI()/180)*SIN(@lat*PI()/180)*COS((lng_user-@lng)*PI()/180)+COS(lat_user*PI()/180)*COS(@lat*PI()/180);
-		  -- set @tem =6371.004*ACOS(@step1)*PI()/180;
-
-		 
-		 
-SELECT @tem;
 END
 ;;
 delimiter ;

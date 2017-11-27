@@ -148,29 +148,11 @@ int Network::ListenLoop(const int port)
 						break;
 				}
 
-				//디버깅용///////////////////////////////////////
-				if(DEBUG)
+				if(ComunicateFunc(client))	//데이터를 클라이언트와 통신하는 함수로 넘겨줌
 				{
-					cout<<buffer<<endl;
-
-					strupr(buffer);
-
-					if((send(client, buffer, BUFFER_MAX_LEN, 0))<0)
-					{
-						perror("Error: Send failed\n");
-						return -1;
-					}
-
-					cout<<epoll_ctl(epfd,EPOLL_CTL_DEL,client,&evlist[i])<<endl;;
-					close(client);
+					//1이 반환되면 통신이 이제 종료되므로 epoll에서 제거
+					epoll_ctl(epfd,EPOLL_CTL_DEL,client,&evlist[i]);
 				}
-				/////////////////////////////////////////////////////
-				else
-					if(ComunicateFunc(client))	//데이터를 클라이언트와 통신하는 함수로 넘겨줌
-					{
-						//1이 반환되면 통신이 이제 종료되므로 epoll에서 제거
-						epoll_ctl(epfd,EPOLL_CTL_DEL,client,&evlist[i]);
-					}
 			}
 
 		}
@@ -207,7 +189,8 @@ int Network::dataStreamRead(const int socket)
 	if((remainLen > BUFFER_MAX_LEN)||(remainLen<0))	//데이터 사이즈가 버퍼 크기를 초과하는지 체크
 		return -1;
 
-	cout<<remainLen<<endl;
+	if(DEBUG)
+		cout<<remainLen<<endl;
 
 	buffer_ptr = buffer;
 	len = 0;
@@ -220,16 +203,16 @@ int Network::dataStreamRead(const int socket)
 		remainLen -= numByte;
 		len += numByte;
 	}
-	
-	numByte = read(socket, buffer_ptr, 3);
-
-
-	cout<<buffer<<endl;
 
 	string data = buffer;
 
+	if(DEBUG)
+		cout<<data<<endl;
+
 	if(stringToJson(data))
 		return -1;
+
+
 
 	return 0;
 }

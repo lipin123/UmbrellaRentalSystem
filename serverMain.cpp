@@ -1,5 +1,6 @@
 #include <iostream>
 #include "UserNetwork.h"
+#include "SpotNetwork.h"
 #include <pthread.h>
 #include <unistd.h>
 
@@ -19,9 +20,10 @@ int main(int argc, char** argv)
 	pthread_t userNet;
 	pthread_t spot;
 
-	cout<<pthread_create(&userNet, NULL, UserNetworkFunc, NULL)<<endl;
+	//cout<<pthread_create(&userNet, NULL, UserNetworkFunc, NULL)<<endl;
 
-
-	pthread_join(userNet,NULL);
+	SpotNetwork s;
+	s.ListenLoop(USER_PORT);
+	//pthread_join(userNet,NULL);
 	return 0;
 }
