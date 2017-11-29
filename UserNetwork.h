@@ -32,6 +32,9 @@ class UserNetwork : public Network
 
 		int SelectUmbrella(const int socket);
 
+
+		//////////////////////////////////////////////////////////////
+		//DB part
 		int CheckUserID(int userID);//part 1
 		coordinates GetSpotCdnt(int SportID);//part 2
 		vector<rentalSpot> GetRentalspotInfo(int RentalspotID);//part 3

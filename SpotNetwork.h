@@ -23,10 +23,21 @@ class SpotNetwork : public Network
 
 		int Identification(const int socket);
 
+		//////////////////////////////////////////////////////////////////
+		
+		int SendHash(const int socket);
+
+		int RentalConfirm(const int socket);
+
+		//////////////////////////////////////////////////////////////////
+
 		int ReturnUmbrellaCode(const int socket);
 
 		int ReturnConfirm(const int socket);
 
+
+		/////////////////////////////////////////////////////////////////
+		//DB part
 		int CheckRentalSpotID(int spotID);//part1
 		int UmbrellaFindUsers(int umbrellaid);//part2
 		bool UpdateUmbrellaLocation(int umbrellaID, int newSpotID, int newSlotID);//part3

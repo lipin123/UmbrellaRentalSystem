@@ -2,6 +2,7 @@
 #include <string>
 using namespace std;
 
+#define DEBUG 1
 
 
 int SpotNetwork::CheckRentalSpotID(int spotID)//part1
@@ -73,6 +74,46 @@ int SpotNetwork::Identification(const int socket)
 		return 1;
 }
 
+int SpotNetwork::SendHash(const int socket)
+{
+	int spotID = dataJson["spotID"].asInt();
+	int userID = dataJson["userID"].asInt();
+	string hashCode = dataJson["hashCode"].asString();
+	int umbID = 0;
+
+	////////////////////////////////////////////////////////////////
+	//	DB part
+	//	userID와 hashCode를 가지고 올바른 건지 확인
+	//	올바른 hashCode와 userID라면 우산 id를 반환
+	//	틀리면 -1 반환
+	////////////////////////////////////////////////////////////////
+	
+	Json::Value sendData;
+
+	sendData["command"] = S2R_VerifyCom;
+	sendData["spotID"] = spotID;
+	sendData["umbID"] = umbID;
+
+	dataStreamWrite(socket sendData);
+
+	return 0;
+}
+
+int SpotNetwork::RentalConfirm(const int socket)
+{
+	int spotID = dataJson["spotID"].asInt();
+	int status = dataJson["status"].asInt();
+	string umbStorage = dataJson["umbStorage"].asInt();
+
+	//////////////////////////////////////////////////////////////////
+	//	DB part
+	//	spotID와 umbStorage를 이용해 대여 이후의 상황을 최신화
+	//  이상이 없으면 0반환
+	//////////////////////////////////////////////////////////////////
+	
+	return 1;
+}
+
 int SpotNetwork::ReturnUmbrellaCode(const int socket)
 {
 	int spotID = dataJson["spotID"].asInt();
@@ -117,6 +158,7 @@ int SpotNetwork::ReturnConfirm(const int socket)
 
 	if(status)
 		cout<<spotID<<" have a problem for return"<<endl;
+
 
 	return 1;
 }
