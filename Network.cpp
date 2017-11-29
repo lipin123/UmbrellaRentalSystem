@@ -1,4 +1,5 @@
 #include "Network.h"
+#include "Server_Network_format.h"
 #include <cstring>
 #include <cstdio>
 

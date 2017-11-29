@@ -39,12 +39,16 @@ int SpotNetwork::ComunicateFunc(const int socket)
 {
 	switch (dataJson["command"].asInt())
 	{
-	case R2S_SendHash:
-		return ReturnUmbrellaCode(socket);
-	case R2S_RentConfirm:
-		return ReturnConfirm(socket);
-	default:
-		break;
+		case R2S_SendHash:
+			return SendHash(socket);
+		case R2S_RentConfirm:
+			return RentalConfirm(socket);
+		case R2S_ReturnUmbrellaCode:
+			return ReturnUmbrellaCode(socket);
+		case R2S_ReturnConfirm:
+			return ReturnConfirm(socket);
+		default:
+			break;
 	}
 }
 
@@ -87,14 +91,14 @@ int SpotNetwork::SendHash(const int socket)
 	//	올바른 hashCode와 userID라면 우산 id를 반환
 	//	틀리면 -1 반환
 	////////////////////////////////////////////////////////////////
-	
+
 	Json::Value sendData;
 
 	sendData["command"] = S2R_VerifyCom;
 	sendData["spotID"] = spotID;
 	sendData["umbID"] = umbID;
 
-	dataStreamWrite(socket sendData);
+	dataStreamWrite(socket, sendData);
 
 	return 0;
 }
@@ -103,14 +107,14 @@ int SpotNetwork::RentalConfirm(const int socket)
 {
 	int spotID = dataJson["spotID"].asInt();
 	int status = dataJson["status"].asInt();
-	string umbStorage = dataJson["umbStorage"].asInt();
+	string umbStorage = dataJson["umbStorage"].asString();
 
 	//////////////////////////////////////////////////////////////////
 	//	DB part
 	//	spotID와 umbStorage를 이용해 대여 이후의 상황을 최신화
 	//  이상이 없으면 0반환
 	//////////////////////////////////////////////////////////////////
-	
+
 	return 1;
 }
 
