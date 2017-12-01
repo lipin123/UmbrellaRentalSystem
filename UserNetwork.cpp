@@ -5,6 +5,7 @@
 using namespace std;
 
 #define DEBUG_USER 1
+#define DB_DEBUG 0
 
 
 int UserNetwork::CheckUserID(int userID) //part 1
@@ -71,14 +72,17 @@ int UserNetwork::Identification(const int socket)
 	if(dataJson["command"].asInt() == U2S_UserIden)
 	{
 		Json::Value sendData;
-		//////////////////////////////////////////
-		//  DB part1
-		//	유저 ID DB에서 체크
-		//	만약 아니라면 1 반환
-		if(CheckUserID(userID))
-			return 1; //part1
-		//////////////////////////////////////////
 
+		if(DB_DEBUG)
+		{
+			//////////////////////////////////////////
+			//  DB part1
+			//	유저 ID DB에서 체크
+			//	만약 아니라면 1 반환
+			if(CheckUserID(userID))
+				return 1; //part1
+			//////////////////////////////////////////
+		}
 		sendData["ID"] = userID;
 		sendData["command"] = ACK;
 
@@ -107,19 +111,20 @@ int UserNetwork::SpotRequest(const int socket)
 
 	sendData["command"] = S2U_RentalPos;
 	sendData["userID"] = dataJson["userID"].asInt();
-
-	////////////////////////////////////////////////////
-	// DB part2
-	// 우산 대여소 위치 데이터, SpotID, 우산수 데이터들 받기
-	cord = GetSpotCdnt(spotID);
-
-	SpotLocation["E"] = cord.lng;
-	SpotLocation["N"] = cord.lat;
+	if(DB_DEBUG)
+	{
+		////////////////////////////////////////////////////
+		// DB part2
+		// 우산 대여소 위치 데이터, SpotID, 우산수 데이터들 받기
+		cord = GetSpotCdnt(spotID);
+		////////////////////////////////////////////////////
+	}	
+	SpotLocation["E"] = E;			//for DEBUG - change later
+	SpotLocation["N"] = N;			//for DEBUG - change later
 	SpotLocation["spotID"] = 1;		//DB에서 받아야하는 데이터
 	SpotLocation["numOfUmb"] = 1;	//DB에서 받아야하는 데이터
 	locationNum++;
 	sendData["SpotLocation"].append(SpotLocation);
-	////////////////////////////////////////////////////
 	sendData["numOfSpot"] = locationNum;
 
 	dataStreamWrite(socket, sendData);
@@ -137,17 +142,20 @@ int UserNetwork::SelectSpot(const int socket)
 	sendData["userID"] = dataJson["userID"].asInt();
 	sendData["spotID"] = spotID = dataJson["spotID"].asInt();
 
-	///////////////////////////////////////////////
-	// DB part3
-	// 대여지점 정보 받기
-	spot = GetRentalspotInfo(spotID)[0]; //대여소 ID를 입력하셈.
-	///////////////////////////////////////////////
+	if(DB_DEBUG)
+	{
+		///////////////////////////////////////////////
+		// DB part3
+		// 대여지점 정보 받기
+		spot = GetRentalspotInfo(spotID)[0]; //대여소 ID를 입력하셈.
+		///////////////////////////////////////////////
+	}
 
 	string umbStorage;
 
 	sendData["x"] = spot.structure.col;
 	sendData["y"] = spot.structure.row;
-	
+
 	for(int i = 0; i<spot.vacancy.size();i++)
 	{
 		umbStorage+=spot.vacancy[i];
@@ -167,7 +175,7 @@ int UserNetwork::SelectUmbrella(const int socket)
 	int userID;
 	int spotID;
 	string source;
-	
+
 	srand(time(NULL));
 
 	sendData["command"] = S2U_UmbHash;
@@ -184,12 +192,15 @@ int UserNetwork::SelectUmbrella(const int socket)
 
 	string hashCode = sha256(source);
 
-	///////////////////////////////////////////////////
-	// DB part4
-	// 해쉬 코드와 해야할 명령들 DB에 저장
-	AdHashCode(userID, spotID, umbNum, hashCode);
-	///////////////////////////////////////////////////
-	
+	if(DB_DEBUG)
+	{
+		///////////////////////////////////////////////////
+		// DB part4
+		// 해쉬 코드와 해야할 명령들 DB에 저장
+		AdHashCode(userID, spotID, umbNum, hashCode);
+		///////////////////////////////////////////////////
+	}
+
 	sendData["hashCode"] = hashCode;
 
 	dataStreamWrite(socket, sendData);
@@ -198,4 +209,4 @@ int UserNetwork::SelectUmbrella(const int socket)
 }
 
 
-	
+

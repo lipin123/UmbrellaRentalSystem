@@ -3,7 +3,7 @@
 using namespace std;
 
 #define DEBUG 1
-
+#define DB_DEBUG 0
 
 int SpotNetwork::CheckRentalSpotID(int spotID)//part1
 {
@@ -60,13 +60,18 @@ int SpotNetwork::Identification(const int socket)
 	{
 		Json::Value sendData;
 
-		/////////////////////////////////////////////////////
-		//	DB part 1
-		//	return 1 if it's not right RentalSpot ID
-		if(CheckRentalSpotID(spotID))
-			return 1;
-		////////////////////////////////////////////////////
-
+		if(DB_DEBUG)
+		{
+			/////////////////////////////////////////////////////
+			//	DB part 1
+			//	return 1 if it's not right RentalSpot ID
+			if(CheckRentalSpotID(spotID))
+			{
+				sendFIN(socket);
+				return 1;
+			}
+			////////////////////////////////////////////////////
+		}
 		sendData["ID"] = spotID;
 		sendData["command"] = ACK;
 
@@ -85,13 +90,15 @@ int SpotNetwork::SendHash(const int socket)
 	string hashCode = dataJson["hashCode"].asString();
 	int umbID = 0;
 
-	////////////////////////////////////////////////////////////////
-	//	DB part
-	//	userID와 hashCode를 가지고 올바른 건지 확인
-	//	올바른 hashCode와 userID라면 우산 id를 반환
-	//	틀리면 -1 반환
-	////////////////////////////////////////////////////////////////
-
+	if(DB_DEBUG)
+	{
+		////////////////////////////////////////////////////////////////
+		//	DB part
+		//	userID와 hashCode를 가지고 올바른 건지 확인
+		//	올바른 hashCode와 userID라면 우산 id를 반환
+		//	틀리면 -1 반환
+		////////////////////////////////////////////////////////////////
+	}
 	Json::Value sendData;
 
 	sendData["command"] = S2R_VerifyCom;
@@ -109,12 +116,14 @@ int SpotNetwork::RentalConfirm(const int socket)
 	int status = dataJson["status"].asInt();
 	string umbStorage = dataJson["umbStorage"].asString();
 
-	//////////////////////////////////////////////////////////////////
-	//	DB part
-	//	spotID와 umbStorage를 이용해 대여 이후의 상황을 최신화
-	//  이상이 없으면 0반환
-	//////////////////////////////////////////////////////////////////
-
+	if(DB_DEBUG)
+	{
+		//////////////////////////////////////////////////////////////////
+		//	DB part
+		//	spotID와 umbStorage를 이용해 대여 이후의 상황을 최신화
+		//  이상이 없으면 0반환
+		//////////////////////////////////////////////////////////////////
+	}
 	return 1;
 }
 
@@ -125,15 +134,17 @@ int SpotNetwork::ReturnUmbrellaCode(const int socket)
 	int userID = 1234;
 	Json::Value sendData;
 
-	////////////////////////////////////////////////////////////////
-	//  DB 파트 2
-	//  umbID로 우산 번호 확인 후 대여중인지 확인
-	//  만약 해당 우산번호가 없거나 대여중인 우산이 아니라면 -1 반환
-	//  그게 아니라면 대여하고 있던 userID 반환
-	if((userID = UmbrellaFindUsers(umbID)) == -1)
-		return 1;
-	//////////////////////////////////////////////////////////////
-
+	if(DB_DEBUG)
+	{
+		////////////////////////////////////////////////////////////////
+		//  DB 파트 2
+		//  umbID로 우산 번호 확인 후 대여중인지 확인
+		//  만약 해당 우산번호가 없거나 대여중인 우산이 아니라면 -1 반환
+		//  그게 아니라면 대여하고 있던 userID 반환
+		if((userID = UmbrellaFindUsers(umbID)) == -1)
+			return 1;
+		//////////////////////////////////////////////////////////////
+	}
 	sendData["spotID"] = spotID;
 	sendData["command"] = S2R_VerifyUmbrellaCode;
 	sendData["userID"] = userID;
@@ -152,13 +163,16 @@ int SpotNetwork::ReturnConfirm(const int socket)
 	int umbID = dataJson["umbID"].asInt();
 	string umbStorage = dataJson["umbStorage"].asString();
 
-	/////////////////////////////////////////////////////////////////
-	// DB 파트 3
-	// DB에 해당 ID의 우산에 '보관된 Spot ID'와 'Spot에 보관된 위치'
-	// 를 수정
-	// 해당 대여지점(Spot)이 보유한 우산 및 현재 보관 현황을 최신화
-	UpdateUmbrellaLocation(umbID, spotID, returnPlace);//Please enter the parameters
-	////////////////////////////////////////////////////////////////
+	if(DB_DEBUG)
+	{
+		/////////////////////////////////////////////////////////////////
+		// DB 파트 3
+		// DB에 해당 ID의 우산에 '보관된 Spot ID'와 'Spot에 보관된 위치'
+		// 를 수정
+		// 해당 대여지점(Spot)이 보유한 우산 및 현재 보관 현황을 최신화
+		UpdateUmbrellaLocation(umbID, spotID, returnPlace);//Please enter the parameters
+		////////////////////////////////////////////////////////////////
+	}
 
 	if(status)
 		cout<<spotID<<" have a problem for return"<<endl;
