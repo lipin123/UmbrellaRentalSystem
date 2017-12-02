@@ -182,7 +182,7 @@ int Network::dataStreamRead(const int socket)
 	remainLen = atoi(tem.c_str());
 
 	if(DEBUG)
-		cout<<"Byte Received : "<<remainLen<<endl;
+		cout<<"Byte Received : "<<buffer<<endl;
 	if((remainLen > BUFFER_MAX_LEN)||(remainLen<=0))	//데이터 사이즈가 버퍼 크기를 초과하는지 체크
 		return -1;
 
