@@ -336,12 +336,18 @@ vector<rentalSpot> MyDB::UniSearch(rentalSpotCol col, string val)
 	return re;
 }
 
+int MyDB::affectedRows()
+{
+	return mysql_affected_rows(connection);
+}
+
 bool MyDB::UniInsert(user row)
 {
 	string inqStr = "call Uni_insert('user',\"";
 
 	inqStr = inqStr + to_string(row.userID) + ",'" + row.userAcc + "','" + row.userPW + "'," + to_string(row.umbrella) + ",'" + row.hashCode + "'";
 	inqStr += "\");";
+	cout << inqStr;
 	return ExeSQL(inqStr);
 }
 
@@ -604,7 +610,7 @@ bool MyDB::UniUpdate(rentalSpotCol col, string val, rentalSpotCol conCol, string
 		break;
 	}
 	inqStr += "\");";
-
+	cout << inqStr<<endl;
 	return ExeSQL(inqStr);
 }
 
@@ -623,6 +629,7 @@ void MyDB::SplitString(const std::string & s, std::vector<std::string>& v, const
 	}
 	if (pos1 != s.length())
 		v.push_back(s.substr(pos1));
+	
 }
 
 

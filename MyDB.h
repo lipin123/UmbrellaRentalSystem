@@ -1,5 +1,5 @@
 #include<iostream>  
-#include<mysql/mysql.h>  
+#include<mysql.h>  
 #include<vector>
 
 using namespace std;
@@ -84,6 +84,7 @@ public:
 	vector<user> UniSearch(userCol col,string val);
 	vector<umbrellas> UniSearch(umbrellaCol col,string val);
 	vector<rentalSpot> UniSearch(rentalSpotCol col, string val);
+	int affectedRows();
 
 	bool UniInsert(user row);
 	bool UniInsert(umbrellas row);
