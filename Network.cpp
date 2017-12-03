@@ -232,7 +232,11 @@ int Network::dataStreamWrite(const int socket, Json::Value &data)
 		sendSize[7-i] += strLen_tem % 10;
 		strLen_tem /= 10;
 	}
-	cout <<"SendData :"<< sendSize<<endl;
+	if(DEBUG)
+	{
+		cout <<"SendData :"<< sendSize<<endl;
+		cout <<sendDataStr<<endl<<endl;
+	}
 	write(socket, sendSize, 8);
 	write(socket, sendDataStr.c_str(), strLen);
 	return 0;

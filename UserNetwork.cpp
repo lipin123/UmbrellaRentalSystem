@@ -61,6 +61,7 @@ int UserNetwork::ComunicateFunc(const int socket)
 		default:
 			if(DEBUG_USER)
 				cout<<"just out"<<endl;
+			return 0;
 	}
 
 }
@@ -89,10 +90,10 @@ int UserNetwork::Identification(const int socket)
 		dataStreamWrite(socket, sendData);
 
 		if(DEBUG_USER)
-			cout<<"Identified"<<userID<<endl;
+			cout<<"Identified "<<userID<<endl;
 		return 0;
 	}else
-		return 1;
+		return 0;
 }
 
 int UserNetwork::SpotRequest(const int socket)
@@ -151,10 +152,10 @@ int UserNetwork::SelectSpot(const int socket)
 		///////////////////////////////////////////////
 	}
 
-	string umbStorage;
+	string umbStorage = "1";
 
-	sendData["x"] = spot.structure.col;
-	sendData["y"] = spot.structure.row;
+	sendData["x"] = 1;//spot.structure.col;
+	sendData["y"] = 1;//spot.structure.row;
 
 	for(int i = 0; i<spot.vacancy.size();i++)
 	{
@@ -205,7 +206,7 @@ int UserNetwork::SelectUmbrella(const int socket)
 
 	dataStreamWrite(socket, sendData);
 
-	return 0;
+	return 1;
 }
 
 
