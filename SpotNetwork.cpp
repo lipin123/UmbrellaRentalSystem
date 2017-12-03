@@ -26,10 +26,12 @@ int SpotNetwork::UmbrellaFindUsers(int umbrellaid)//part2
 
 bool SpotNetwork::UpdateUmbrellaLocation(int umbrellaID, int newSpotID, int newSlotID)//part3
 {
-	bool update1 = false, update2 = false;
-	update1 = dbExa.UniUpdate(umbrella_id, to_string(umbrellaID), borrower_id, to_string(newSpotID));
-	update2 = dbExa.UniUpdate(umbrella_id, to_string(umbrellaID), slot_label, to_string(newSlotID));
-	if (update1&&update2)
+	string inq;
+	bool gmerr = false;
+	vector<string> re;
+	inq = "UPDATE umbrella SET borrower_id=" + to_string(newSpotID) + ",slot_label=" + to_string(newSlotID) + " WHERE umbrella_id=" + to_string(umbrellaID) + ";";
+	gmerr = dbExa.ExeSQL(inq);
+	if (dbExa.affectedRows() > 0 && gmerr)
 		return true;
 	return false;
 }
@@ -52,7 +54,6 @@ int SpotNetwork::UpdateSpotAfterBorrow(int spotID, string umbStorage) // part 5
 	vector<string> re;
 	inq = "UPDATE rental_spot SET vacancy = '"+ umbStorage +"' WHERE rs_id = '"+to_string(spotID)+"'";
 	dbExa.ExeSQL(inq);
-	
 	if (dbExa.affectedRows() > 0)
 		return 0;
 	return -1;

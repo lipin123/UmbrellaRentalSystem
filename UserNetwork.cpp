@@ -49,17 +49,15 @@ bool UserNetwork::AdHashCode(int userID, int spotID, int umbNum, string hashCode
 {
 	string inq;
 	vector<string> re;
-	inq = "SELECT umbrella_id FROM `umbrella` WHERE borrower_id = " + to_string(spotID) + "AND slot_label = "+to_string(umbNum)+"; ";
+	inq = "SELECT umbrella_id FROM umbrella WHERE borrower_id = " + to_string(spotID) + " AND slot_label = " + to_string(umbNum) + ";";
 	dbExa.ExeSQL(inq);
 	re = dbExa.NextRow();
 	if (re.size() > 0)
 	{
-		inq = "call Uni_insert(\"hashcode\",\"'" + to_string(userID) + "','" + re[0] + "','" + hashCode
-			+ "'\")";
-		return dbExa.ExeSQL(inq);
+		inq = "INSERT INTO hashcode VALUES('" + to_string(userID) + "','" + re[0] + "','" + hashCode + "');";
+		return dbExa.ExeSQL(inq) && (dbExa.affectedRows()>0);
 	}
 	return false;
-
 }
 //DB part end
 
@@ -78,6 +76,7 @@ int UserNetwork::ComunicateFunc(const int socket)
 		default:
 			if(DEBUG_USER)
 				cout<<"just out"<<endl;
+			return 0;
 	}
 
 }
@@ -109,7 +108,7 @@ int UserNetwork::Identification(const int socket)
 			cout<<"Identified"<<userID<<endl;
 		return 0;
 	}else
-		return 1;
+		return 0;	//Should Modify later!
 }
 
 int UserNetwork::SpotRequest(const int socket)
@@ -160,6 +159,8 @@ int UserNetwork::SelectSpot(const int socket)
 	sendData["command"] = S2U_SpotInfo;
 	sendData["userID"] = dataJson["userID"].asInt();
 	sendData["spotID"] = spotID = dataJson["spotID"].asInt();
+	sendData["x"] = 1;
+	sendData["y"] = 1;
 
 
 	if(DB_DEBUG)
@@ -171,7 +172,7 @@ int UserNetwork::SelectSpot(const int socket)
 		///////////////////////////////////////////////
 	}
 
-	string umbStorage;
+	string umbStorage = "1";
 
 	sendData["x"] = spot.structure.col;
 	sendData["y"] = spot.structure.row;
@@ -225,6 +226,5 @@ int UserNetwork::SelectUmbrella(const int socket)
 
 	dataStreamWrite(socket, sendData);
 
-	return 0;
+	return 1;
 }
-
