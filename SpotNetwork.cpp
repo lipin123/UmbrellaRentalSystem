@@ -33,6 +33,31 @@ bool SpotNetwork::UpdateUmbrellaLocation(int umbrellaID, int newSpotID, int newS
 		return true;
 	return false;
 }
+
+int SpotNetwork::GetUmbidByHash(string hash, int userID) // part 4
+{
+	string inq;
+	vector<string> re;
+	inq = "SELECT umbID FROM hashcode WHERE userID = '"+ to_string(userID) +"' AND hashCode='"+hash+"'";
+	dbExa.ExeSQL(inq);
+	re = dbExa.NextRow();
+	if (re.size() > 0)
+		return atoi(re[0].c_str());
+	return -1;
+}
+
+int SpotNetwork::UpdateSpotAfterBorrow(int spotID, string umbStorage) // part 5
+{
+	string inq;
+	vector<string> re;
+	inq = "UPDATE rental_spot SET vacancy = '"+ umbStorage +"' WHERE rs_id = '"+to_string(spotID)+"'";
+	dbExa.ExeSQL(inq);
+	
+	if (dbExa.affectedRows() > 0)
+		return 0;
+	return -1;
+}
+
 //DB function end
 
 int SpotNetwork::ComunicateFunc(const int socket)
@@ -93,10 +118,11 @@ int SpotNetwork::SendHash(const int socket)
 	if(DB_DEBUG)
 	{
 		////////////////////////////////////////////////////////////////
-		//	DB part
+		//	DB part 4 
 		//	userID와 hashCode를 가지고 올바른 건지 확인
 		//	올바른 hashCode와 userID라면 우산 id를 반환
 		//	틀리면 -1 반환
+		GetUmbidByHash(hashCode, userID); //part 4
 		////////////////////////////////////////////////////////////////
 	}
 	Json::Value sendData;
@@ -119,9 +145,11 @@ int SpotNetwork::RentalConfirm(const int socket)
 	if(DB_DEBUG)
 	{
 		//////////////////////////////////////////////////////////////////
-		//	DB part
+		//	DB part 5
 		//	spotID와 umbStorage를 이용해 대여 이후의 상황을 최신화
-		//  이상이 없으면 0반환
+		//  이상이 없으면 0반환, 있으면 -1반환.
+		//'剩余雨伞列表'没更新
+		UpdateSpotAfterBorrow(spotID, umbStorage);
 		//////////////////////////////////////////////////////////////////
 	}
 	return 1;
@@ -176,7 +204,6 @@ int SpotNetwork::ReturnConfirm(const int socket)
 
 	if(status)
 		cout<<spotID<<" have a problem for return"<<endl;
-
 
 	return 1;
 }
