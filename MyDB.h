@@ -1,3 +1,7 @@
+#ifndef __MYDB__
+#define __MYDB__
+
+
 #include<iostream>  
 #include<mysql.h>  
 #include<vector>
@@ -98,3 +102,5 @@ public:
 	bool UniUpdate(umbrellaCol col, string val, umbrellaCol conCol, string conVal);
 	bool UniUpdate(rentalSpotCol col, string val, rentalSpotCol conCol, string conVal);
 };
+
+#endif

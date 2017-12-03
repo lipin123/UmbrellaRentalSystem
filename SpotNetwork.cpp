@@ -58,7 +58,6 @@ int SpotNetwork::UpdateSpotAfterBorrow(int spotID, string umbStorage) // part 5
 	return -1;
 }
 
-
 //DB function end
 
 int SpotNetwork::ComunicateFunc(const int socket)
@@ -206,7 +205,5 @@ int SpotNetwork::ReturnConfirm(const int socket)
 	if(status)
 		cout<<spotID<<" have a problem for return"<<endl;
 
-
 	return 1;
-	
 }

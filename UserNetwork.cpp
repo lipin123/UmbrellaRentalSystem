@@ -18,7 +18,7 @@ int UserNetwork::CheckUserID(int userID) //part 1
 	return 0;
 }
 
-vector<vector<double>> UserNetwork::GetSportCdnt(double lat, double lng, int range) //part2
+vector<vector<double>> UserNetwork::GetSpotCdnt(double lat, double lng, int range) //part2
 {
 	vector<vector<double>> re;
 	vector<rentalSpot> rsRes;
@@ -45,8 +45,6 @@ vector<rentalSpot> UserNetwork::GetRentalspotInfo(int RentalspotID) //part 3
 	return rs;
 }
 
-
-
 bool UserNetwork::AdHashCode(int userID, int spotID, int umbNum, string hashCode) //part 4
 {
 	string inq;
@@ -61,6 +59,7 @@ bool UserNetwork::AdHashCode(int userID, int spotID, int umbNum, string hashCode
 		return dbExa.ExeSQL(inq);
 	}
 	return false;
+
 }
 //DB part end
 
@@ -125,7 +124,9 @@ int UserNetwork::SpotRequest(const int socket)
 	double width = dataJson["width"].asDouble();
 	double height = dataJson["height"].asDouble();
 
+
 	vector<vector<double>> cord;
+
 
 	sendData["command"] = S2U_RentalPos;
 	sendData["userID"] = dataJson["userID"].asInt();
@@ -134,7 +135,7 @@ int UserNetwork::SpotRequest(const int socket)
 		////////////////////////////////////////////////////
 		// DB part2
 		// 우산 대여소 위치 데이터, SpotID, 우산수 데이터들 받기
-		cord=GetSportCdnt(N, E, sqrt(pow(width / 2, 2) + pow(height / 2, 2)));
+		cord=GetSpotCdnt(N, E, sqrt(pow(width / 2, 2) + pow(height / 2, 2)));
 		////////////////////////////////////////////////////
 	}	
 	SpotLocation["E"] = E;			//for DEBUG - change later
@@ -159,6 +160,7 @@ int UserNetwork::SelectSpot(const int socket)
 	sendData["command"] = S2U_SpotInfo;
 	sendData["userID"] = dataJson["userID"].asInt();
 	sendData["spotID"] = spotID = dataJson["spotID"].asInt();
+
 
 	if(DB_DEBUG)
 	{

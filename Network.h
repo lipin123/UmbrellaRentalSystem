@@ -55,6 +55,12 @@ class Network
 		//-1	-> 버퍼 크기 오버
 		int dataStreamRead(const int socket);
 
+		//데이터를 클라이언트로 제이슨 형태로 보냄
+		//
+		//socket : 클라이언트 소켓
+		//data : 보내야할 제이슨 데이터
+		//
+		//0		-> 성공
 		int dataStreamWrite(const int socket, Json::Value &data);
 
 		//string을 json형태로 바꿔서 저장해주는 함수
@@ -64,6 +70,11 @@ class Network
 		//0 	-> 성공
 		//1		-> 입력받은 스트링이 json데이터가 아님
 		int stringToJson(const std::string &data);
+
+		//연결 종료 신호를 보내는 함수
+		//
+		//socket : 클라이언트 소켓
+		int sendFIN(const int socket);
 
 	public:
 		//listen 루프를 도는 함수

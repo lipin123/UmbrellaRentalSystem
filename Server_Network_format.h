@@ -11,6 +11,7 @@
 
 //기본 커멘드 바이트
 #define ACK					(0xFF)	//데이터를 받았다는 의미로 보내는 ACK
+#define FIN					(0xF0)	//연결종료를 선언
 #define U2S_UserIden		(0x00)	//최초 연결시 유저 Identification
 #define R2S_RentalIden		(0x10)	//최초 연결시 대여소 identification
 
@@ -39,6 +40,13 @@
  * int ID
  *
  */
+
+/*
+ * 연결 종료를 선언
+ * int command(FIN)
+ * 
+ */
+
 
 ///////////////////////////////////////////////////////////////////////////
 // 대여 시나리오
@@ -192,4 +200,4 @@ struct SpotLocation
  * string umbStorage
  */
 
-#endiff
+#endif

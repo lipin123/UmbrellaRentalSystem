@@ -36,7 +36,7 @@ class UserNetwork : public Network
 		//////////////////////////////////////////////////////////////
 		//DB part
 		int CheckUserID(int userID);//part 1
-		vector<vector<double>> GetSportCdnt(double lat, double lng, int range);//part 2
+		vector<vector<double>> GetSpotCdnt(double lat, double lng, int range);//part 2
 		vector<rentalSpot> GetRentalspotInfo(int RentalspotID);//part 3
 		bool AdHashCode(int userID,int spotID,int umbNum,string hashCode); //part 4
 };

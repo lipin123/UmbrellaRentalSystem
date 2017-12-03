@@ -1,4 +1,5 @@
 #include "Network.h"
+#include "Server_Network_format.h"
 #include <cstring>
 #include <cstdio>
 
@@ -7,7 +8,7 @@
 #include "json/json.h"
 #endif
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define WAITING_LENGTH (100)
 #define MAXIMUM_SOCKET (8)
@@ -19,7 +20,6 @@ char * strupr(char* string);
 
 //listen 루프를 도는 함수
 //port : 해당 루프가 데이터를 받을 port번호
-//func : 패킷을 받았을때 처리할 함수 포인터(클라이언트 소켓, string 데이터)
 int Network::ListenLoop(const int port)
 {
 	struct sockaddr_in server_addr, client_addr;	//주소값 변수들
@@ -106,29 +106,11 @@ int Network::ListenLoop(const int port)
 			{
 				client = accept(server, (struct sockaddr *)&client_addr, &clilen);
 
-				//Identification을 위해 데이터 읽기
-				switch(dataStreamRead(client))
-				{
-					case -1:
-						if(DEBUG)
-							cout<<"Data Length error!"<<endl;
-						exit(1);
-					case 1:
-						if(DEBUG)
-							cout<<"EOF detected!"<<endl;
-						break;
-				}
 
-				//최초연결시 identification
-				if(Identification(client))
-					close(client);	//아니라면 바로 연결 종료
-				else
-				{
-					//확인후 맞다면 넣기
-					ev.events = EPOLLIN|EPOLLERR;
-					ev.data.fd = client;
-					epoll_ctl(epfd,EPOLL_CTL_ADD, client, &ev);
-				}
+				//epoll 넣기
+				ev.events = EPOLLIN|EPOLLERR;
+				ev.data.fd = client;
+				epoll_ctl(epfd,EPOLL_CTL_ADD, client, &ev);
 			}
 			//client socket으로 넘어온 데이터들
 			else
@@ -142,37 +124,28 @@ int Network::ListenLoop(const int port)
 						if(DEBUG)
 							cout<<"Data Length error!"<<endl;
 						exit(1);
+					case 0:
+						if(ComunicateFunc(client))	//데이터를 클라이언트와 통신하는 함수로 넘겨줌
+						{
+							sendFIN(client);
+							//1이 반환되면 통신이 이제 종료되므로 epoll에서 제거
+							close(client);
+							epoll_ctl(epfd,EPOLL_CTL_DEL,client,&evlist[i]);
+						}
+						break;
 					case 1:
 						if(DEBUG)
 							cout<<"EOF detected!"<<endl;
 						break;
-				}
-
-				//디버깅용///////////////////////////////////////
-				if(DEBUG)
-				{
-					cout<<buffer<<endl;
-
-					strupr(buffer);
-
-					if((send(client, buffer, BUFFER_MAX_LEN, 0))<0)
-					{
-						perror("Error: Send failed\n");
-						return -1;
-					}
-
-					cout<<epoll_ctl(epfd,EPOLL_CTL_DEL,client,&evlist[i])<<endl;;
-					close(client);
-				}
-				/////////////////////////////////////////////////////
-				else
-					if(ComunicateFunc(client))	//데이터를 클라이언트와 통신하는 함수로 넘겨줌
-					{
-						//1이 반환되면 통신이 이제 종료되므로 epoll에서 제거
+					case 2:	//Identification error
+						if(DEBUG)
+							cout<<"Identification fail"<<endl;
+						close(client);
 						epoll_ctl(epfd,EPOLL_CTL_DEL,client,&evlist[i]);
-					}
+						break;
+				}
+				
 			}
-
 		}
 	}
 
@@ -192,22 +165,27 @@ int Network::dataStreamRead(const int socket)
 	//데이터를 받는 부분, remainLen까지 다 받기 전까지 계속해서 데이터를 받는다.
 	memset(buffer,0x00,sizeof(buffer));	//buffer reset
 
-	remainLen = sizeof(int);	//정수값을 받기 위한 함수
+	remainLen = 8;	//정수값을 받기 위한 함수
 	while(remainLen != 0)
 	{
 		numByte = read(socket, buffer_ptr, remainLen);
-		if(numByte == 0)
-			return 1;
 		buffer_ptr += numByte;
 		remainLen -= numByte;
 		len += numByte;
+		if(numByte == 0)
+			return 1;
+		if(DEBUG)
+			cout <<"remainLen : "<< remainLen <<endl;
 	}
 
-	memcpy(&remainLen, buffer, 4);	//string 형태로 온 int 데이터를 강제로 집어넣음
-	if((remainLen > BUFFER_MAX_LEN)||(remainLen<0))	//데이터 사이즈가 버퍼 크기를 초과하는지 체크
+	string tem = buffer;
+	remainLen = atoi(tem.c_str());
+
+	if(DEBUG)
+		cout<<"Byte Received : "<<buffer<<endl;
+	if((remainLen > BUFFER_MAX_LEN)||(remainLen<=0))	//데이터 사이즈가 버퍼 크기를 초과하는지 체크
 		return -1;
 
-	cout<<remainLen<<endl;
 
 	buffer_ptr = buffer;
 	len = 0;
@@ -220,16 +198,18 @@ int Network::dataStreamRead(const int socket)
 		remainLen -= numByte;
 		len += numByte;
 	}
-	
-	numByte = read(socket, buffer_ptr, 3);
-
-
-	cout<<buffer<<endl;
 
 	string data = buffer;
 
+	if(DEBUG)
+		cout<<"Data Received"<<endl<<data<<endl;
+
 	if(stringToJson(data))
 		return -1;
+
+	//매 패킷마다 Identification 확인
+	if(Identification(socket))
+		return 2;
 
 	return 0;
 }
@@ -240,7 +220,17 @@ int Network::dataStreamWrite(const int socket, Json::Value &data)
 	string sendDataStr = writer.write(data);
 	int strLen = sendDataStr.length();
 
-	write(socket, &strLen, sizeof(strLen));
+	
+	char sendSize[8];
+	int strLen_tem = strLen;
+	memset(sendSize, '0', 8);
+	for(int i = 0;i < 8; i++)
+	{
+		sendSize[7-i] += strLen_tem % 10;
+		strLen_tem /= 10;
+	}
+	cout << sendSize<<endl;
+	write(socket, sendSize, 8);
 	write(socket, sendDataStr.c_str(), strLen);
 	return 0;
 }
@@ -256,15 +246,13 @@ int Network::stringToJson(const string &data)
 	return 0;
 }
 
-char * strupr(char * string)
+int Network::sendFIN(const int socket)
 {
-	int i = 0;
-	while(1)
-	{
-		if(string[i] == NULL)
-			return string;
-		string[i] = toupper(string[i]);
-		i++;
-	}
-}
+	Json::Value sendData;
+	
+	sendData["command"] = FIN;
+	
+	dataStreamWrite(socket, sendData);
 
+	return 1;
+}
