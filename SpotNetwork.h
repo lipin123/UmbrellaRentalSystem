@@ -41,6 +41,8 @@ class SpotNetwork : public Network
 		int CheckRentalSpotID(int spotID);//part1
 		int UmbrellaFindUsers(int umbrellaid);//part2
 		bool UpdateUmbrellaLocation(int umbrellaID, int newSpotID, int newSlotID);//part3
+		int GetUmbidByHash(string hash, int userID); //part 4
+		int UpdateSpotAfterBorrow(int spotID, string umbStorage); //part 5
 };
 
 #endif

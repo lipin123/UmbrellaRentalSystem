@@ -2,6 +2,7 @@
 #include "sha256.h"
 #include <ctime>
 #include <cstdlib>
+#include <cmath>
 using namespace std;
 
 #define DEBUG_USER 1
@@ -17,15 +18,22 @@ int UserNetwork::CheckUserID(int userID) //part 1
 	return 0;
 }
 
-coordinates UserNetwork::GetSpotCdnt(int SpotID) //part 2
+vector<vector<double>> UserNetwork::GetSpotCdnt(double lat, double lng, int range) //part2
 {
-	coordinates re;
+	vector<vector<double>> re;
 	vector<rentalSpot> rsRes;
-	rsRes = dbExa.UniSearch(rs_id, to_string(SpotID));
+	rsRes = dbExa.SearchSpot(lat, lng, range);
 	if (rsRes.size() > 0)
 	{
-		re.lat = rsRes[0].lat;
-		re.lng = rsRes[0].lng;
+		for (int i = 0; i < rsRes.size(); i++)
+		{
+			vector<double> tem;
+			tem.push_back(rsRes[i].rsID);
+			tem.push_back(rsRes[i].lat);
+			tem.push_back(rsRes[i].lng);
+			tem.push_back(rsRes[i].umbrellaID.size());
+			re.push_back(tem);
+		}
 	}
 	return re;
 }
@@ -40,10 +48,19 @@ vector<rentalSpot> UserNetwork::GetRentalspotInfo(int RentalspotID) //part 3
 bool UserNetwork::AdHashCode(int userID, int spotID, int umbNum, string hashCode) //part 4
 {
 	string inq;
-	inq = "call Uni_insert(\"hashcode\",\"'"+to_string(userID)+"','"+ to_string(spotID) +"','"+ to_string(umbNum) +"','"+ hashCode +"'\")";
-	return dbExa.ExeSQL(inq);
-}
+	vector<string> re;
+	inq = "SELECT umbrella_id FROM `umbrella` WHERE borrower_id = " + to_string(spotID) + "AND slot_label = "+to_string(umbNum)+"; ";
+	dbExa.ExeSQL(inq);
+	re = dbExa.NextRow();
+	if (re.size() > 0)
+	{
+		inq = "call Uni_insert(\"hashcode\",\"'" + to_string(userID) + "','" + re[0] + "','" + hashCode
+			+ "'\")";
+		return dbExa.ExeSQL(inq);
+	}
+	return false;
 
+}
 //DB part end
 
 
@@ -107,7 +124,9 @@ int UserNetwork::SpotRequest(const int socket)
 	double width = dataJson["width"].asDouble();
 	double height = dataJson["height"].asDouble();
 
-	coordinates cord;
+
+	vector<vector<double>> cord;
+
 
 	sendData["command"] = S2U_RentalPos;
 	sendData["userID"] = dataJson["userID"].asInt();
@@ -116,7 +135,7 @@ int UserNetwork::SpotRequest(const int socket)
 		////////////////////////////////////////////////////
 		// DB part2
 		// 우산 대여소 위치 데이터, SpotID, 우산수 데이터들 받기
-		cord = GetSpotCdnt(spotID);
+		cord=GetSpotCdnt(N, E, sqrt(pow(width / 2, 2) + pow(height / 2, 2)));
 		////////////////////////////////////////////////////
 	}	
 	SpotLocation["E"] = E;			//for DEBUG - change later
@@ -141,6 +160,7 @@ int UserNetwork::SelectSpot(const int socket)
 	sendData["command"] = S2U_SpotInfo;
 	sendData["userID"] = dataJson["userID"].asInt();
 	sendData["spotID"] = spotID = dataJson["spotID"].asInt();
+
 
 	if(DB_DEBUG)
 	{
@@ -207,6 +227,4 @@ int UserNetwork::SelectUmbrella(const int socket)
 
 	return 0;
 }
-
-
 
