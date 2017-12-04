@@ -15,7 +15,7 @@ class UserNetwork : public Network
 	public:
 		UserNetwork()
 		{
-			dbExa.InitDB("localhos", "root", "1234", "umbrella", 3306);
+			dbExa.InitDB("localhost", "root", "1234", "umbrella", 3306);
 		}
 
 	private:

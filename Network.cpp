@@ -182,7 +182,10 @@ int Network::dataStreamRead(const int socket)
 	remainLen = atoi(tem.c_str());
 
 	if(DEBUG)
-		cout<<"Byte Received : "<<buffer<<endl;
+	{
+		cout<<"Byte Received : "<<buffer<<endl<<remainLen<<endl;
+	}
+
 	if((remainLen > BUFFER_MAX_LEN)||(remainLen<=0))	//데이터 사이즈가 버퍼 크기를 초과하는지 체크
 		return -1;
 
@@ -229,7 +232,11 @@ int Network::dataStreamWrite(const int socket, Json::Value &data)
 		sendSize[7-i] += strLen_tem % 10;
 		strLen_tem /= 10;
 	}
-	cout << sendSize<<endl;
+	if(DEBUG)
+	{
+		cout <<"SendData :"<< sendSize<<endl;
+		cout <<sendDataStr<<endl<<endl;
+	}
 	write(socket, sendSize, 8);
 	write(socket, sendDataStr.c_str(), strLen);
 	return 0;

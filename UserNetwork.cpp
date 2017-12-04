@@ -49,6 +49,7 @@ bool UserNetwork::AdHashCode(int userID, int spotID, int umbNum, string hashCode
 {
 	string inq;
 	vector<string> re;
+  
 	inq = "SELECT umbrella_id FROM umbrella WHERE borrower_id = " + to_string(spotID) + " AND slot_label = " + to_string(umbNum) + ";";
 	dbExa.ExeSQL(inq);
 	re = dbExa.NextRow();
